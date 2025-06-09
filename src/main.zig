@@ -1,35 +1,41 @@
 const std = @import("std");
-pub fn main() !void {
-    const termSize = getTermSize();
-    // if (termSize) |value| {
-    //     std.debug.print("{},{}", .{ value.h, value.w });
-    // } else {
-    //     std.debug.print("no size", .{});
-    // }
+const TermSize = @import("termSize.zig");
+const cursor = @import("cursorMove.zig");
+const Allocator = std.mem.Allocator;
+const print = std.debug.print;
 
+pub fn main() !void {
     var allocator = std.heap.ArenaAllocator.init(std.heap.page_allocator);
     defer allocator.deinit();
+
     const a = allocator.allocator();
-    try drawWalls(termSize.?, a);
+
+    const size = TermSize.getTermSize();
+
+    try drawWalls(size.?, a);
 }
 
-fn drawWalls(size: TermSize, allocator: std.mem.Allocator) !void {
-    var line = try allocator.alloc(u8, size.w);
+fn drawWalls(size: TermSize.Size, allocator: std.mem.Allocator) !void {
+    try drawW(allocator, size.w);
+    try drawH(allocator, size.h, size.w);
+    try drawW(allocator, size.w);
+}
+
+fn drawH(allocator: Allocator, height: u16, width: u16) !void {
+    for (0..height) |_| {
+        try cursor.MoveBgeinOfNextLine(allocator);
+        print("|", .{});
+        try cursor.MoveRight(allocator, width);
+        print("|", .{});
+    }
+}
+
+fn drawW(allocator: Allocator, width: u16) !void {
+    var line = try allocator.alloc(u8, width);
+    defer allocator.free(line);
+
     for (0..line.len) |i| {
-        line[i] = '=';
+        line[i] = '-';
     }
-    std.debug.print("{s}", .{line});
-}
-
-const TermSize = struct { w: u16, h: u16 };
-
-fn getTermSize() ?TermSize {
-    const file = std.io.getStdOut();
-    var buf: std.posix.winsize = undefined;
-    const result = std.posix.system.ioctl(file.handle, std.posix.T.IOCGWINSZ, @intFromPtr(&buf));
-    if (result == 0) {
-        return TermSize{ .w = buf.col, .h = buf.row };
-    } else {
-        return null;
-    }
+    print("{s}", .{line});
 }
