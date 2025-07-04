@@ -1,55 +1,86 @@
 const std = @import("std");
-const print = std.debug.print;
-const Allocator = std.mem.Allocator;
 
-const Seq = enum(u8) {
-    ESC = 27,
-    SquareBracket = 91,
-};
-
-const Dirc = enum(u8) {
-    Up = 65, //A
-    Down = 66, //B
-    Right = 67,
-    Left = 68,
-    BeginOfNextLine = 69,
-};
-
-pub fn MoveBgeinOfNextLine(allocator: Allocator) !void {
-    try Move(allocator, Dirc.BeginOfNextLine, 1);
+pub fn init(writer: std.fs.File.Writer) CursorOp {
+    return .{ .writer = writer };
 }
 
-pub fn MoveUp(allocator: Allocator, num: u16) !void {
-    try Move(allocator, Dirc.Up, num);
-}
+pub const CursorOp = struct {
+    writer: std.fs.File.Writer,
 
-pub fn MoveDown(allocator: Allocator, num: u16) !void {
-    try Move(allocator, Dirc.Down, num);
-}
-
-pub fn MoveLeft(allocator: Allocator, num: u16) !void {
-    try Move(allocator, Dirc.Left, num);
-}
-
-pub fn MoveRight(allocator: Allocator, num: u16) !void {
-    try Move(allocator, Dirc.Right, num);
-}
-
-fn Move(allocator: Allocator, dirc: Dirc, num: u16) !void {
-    const str = try std.fmt.allocPrint(allocator, "{}", .{num});
-    defer allocator.free(str);
-
-    var result = try allocator.alloc(u8, str.len + 3);
-    defer allocator.free(result);
-    result[0] = @intFromEnum(Seq.ESC);
-    result[1] = @intFromEnum(Seq.SquareBracket);
-
-    var index: usize = 2;
-    for (str) |c| {
-        result[index] = c;
-        index += 1;
+    pub fn Backspace(self: CursorOp) !void {
+        try self.writer.print("\x08", .{});
     }
 
-    result[index] = @intFromEnum(dirc);
-    print("{s}", .{result});
-}
+    pub fn Bell(self: CursorOp) !void {
+        try self.writer.print("\x07", .{});
+    }
+
+    pub fn HorizontalTab(self: CursorOp) !void {
+        try self.writer.print("\x09", .{});
+    }
+
+    pub fn Newline(self: CursorOp) !void {
+        try self.writer.print("\x0A", .{});
+    }
+
+    pub fn Return(self: CursorOp) !void {
+        try self.writer.print("\x0D", .{});
+    }
+
+    pub fn Delete(self: CursorOp) !void {
+        try self.writer.print("\x7F", .{});
+    }
+
+    pub fn Esc(self: CursorOp) !void {
+        try self.writer.print("\x1B", .{});
+    }
+
+    pub fn Home(self: CursorOp) !void {
+        try self.Esc();
+        try self.LeftSquare();
+        try self.writer.print("H", .{});
+    }
+
+    pub fn LeftSquare(self: CursorOp) !void {
+        try self.writer.print("[", .{});
+    }
+
+    pub fn Down(self: CursorOp, lines: u16) !void {
+        try self.moveCursor("B", lines);
+    }
+
+    pub fn Up(self: CursorOp, lines: u16) !void {
+        try self.moveCursor("A", lines);
+    }
+
+    pub fn Left(self: CursorOp, lines: u16) !void {
+        try self.moveCursor("D", lines);
+    }
+
+    pub fn Right(self: CursorOp, lines: u16) !void {
+        try self.moveCursor("C", lines);
+    }
+
+    pub fn BeginOfNextLine(self: CursorOp, lines: u16) !void {
+        var buf: [5]u8 = undefined;
+        const numStr = try toString(lines, &buf);
+        try self.Esc();
+        try self.LeftSquare();
+        try self.writer.print("{s}", .{numStr});
+        try self.writer.print("E", .{});
+    }
+
+    fn moveCursor(self: CursorOp, dire: *const [1:0]u8, num: u16) !void {
+        var buf: [5]u8 = undefined;
+        const numStr = try toString(num, &buf);
+        try self.Esc();
+        try self.LeftSquare();
+        try self.writer.print("{s}", .{numStr});
+        try self.writer.print("{s}", .{dire});
+    }
+
+    fn toString(num: u16, buf: *[5]u8) ![]u8 {
+        const numStr = try std.fmt.bufPrint(buf, "{}", .{num});
+        return numStr;
+    }
+};
