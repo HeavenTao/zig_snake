@@ -15,5 +15,3 @@ pub fn getTermSize() ?Size {
         return null;
     }
 }
-
-const TermSize = @This();
