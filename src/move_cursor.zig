@@ -201,3 +201,144 @@ test "toColumns" {
     const expect = [_]u8{ 27, 91, 49, 71 };
     try std.testing.expectEqualSlices(u8, &expect, result);
 }
+
+pub fn getPosition(buf: []u8) ![]const u8 {
+    if (buf.len < 4) {
+        return BufError.notEnoughLength;
+    }
+
+    var cur: usize = 0;
+    buf[cur] = @intFromEnum(Control.ESC);
+    cur += 1;
+    buf[cur] = @intFromEnum(ASCII.LeftSquare);
+    cur += 1;
+    buf[cur] = 54;
+    cur += 1;
+    buf[cur] = @intFromEnum(ASCII.n);
+    return buf[0..(cur + 1)];
+}
+
+test "getPosition" {
+    var buf: [10]u8 = undefined;
+
+    const result = try getPosition(&buf);
+
+    const expect = [_]u8{ 27, 91, 54, 110 };
+
+    try std.testing.expectEqualSlices(u8, &expect, result);
+}
+
+pub fn scrollUpOneLine(buf: []u8) ![]const u8 {
+    if (buf.len < 3) {
+        return BufError.notEnoughLength;
+    }
+
+    var cur: usize = 0;
+    buf[cur] = @intFromEnum(Control.ESC);
+    cur += 1;
+    buf[cur] = @intFromEnum(ASCII.Space);
+    cur += 1;
+    buf[cur] = @intFromEnum(ASCII.M);
+    return buf[0..(cur + 1)];
+}
+
+test "scrollUpOneLine" {
+    var buf: [10]u8 = undefined;
+
+    const result = try scrollUpOneLine(&buf);
+    const expect = [_]u8{ 27, 32, 77 };
+
+    try std.testing.expectEqualSlices(u8, &expect, result);
+}
+
+pub fn saveCursorDEC(buf: []u8) ![]const u8 {
+    if (buf.len < 3) {
+        return BufError.notEnoughLength;
+    }
+
+    var cur: usize = 0;
+
+    buf[cur] = @intFromEnum(Control.ESC);
+    cur += 1;
+    buf[cur] = @intFromEnum(ASCII.Space);
+    cur += 1;
+    buf[cur] = 55;
+    return buf[0..(cur + 1)];
+}
+
+test "saveCursorDEC" {
+    var buf: [10]u8 = undefined;
+
+    const result = try saveCursorDEC(&buf);
+    const expect = [_]u8{ 27, 32, 55 };
+    try std.testing.expectEqualSlices(u8, &expect, result);
+}
+
+pub fn restoreCursorDEC(buf: []u8) ![]const u8 {
+    if (buf.len < 3) {
+        return BufError.notEnoughLength;
+    }
+
+    var cur: usize = 0;
+
+    buf[cur] = @intFromEnum(Control.ESC);
+    cur += 1;
+    buf[cur] = @intFromEnum(ASCII.Space);
+    cur += 1;
+    buf[cur] = 56;
+    return buf[0..(cur + 1)];
+}
+
+test "restoreCursorDEC" {
+    var buf: [10]u8 = undefined;
+
+    const result = try restoreCursorDEC(&buf);
+    const expect = [_]u8{ 27, 32, 56 };
+    try std.testing.expectEqualSlices(u8, &expect, result);
+}
+
+pub fn saveCursorSCO(buf: []u8) ![]const u8 {
+    if (buf.len < 3) {
+        return BufError.notEnoughLength;
+    }
+
+    var cur: usize = 0;
+
+    buf[cur] = @intFromEnum(Control.ESC);
+    cur += 1;
+    buf[cur] = @intFromEnum(ASCII.LeftSquare);
+    cur += 1;
+    buf[cur] = @intFromEnum(ASCII.s);
+    return buf[0..(cur + 1)];
+}
+
+test "saveCursorSCO" {
+    var buf: [10]u8 = undefined;
+
+    const result = try saveCursorSCO(&buf);
+    const expect = [_]u8{ 27, 91, 115 };
+    try std.testing.expectEqualSlices(u8, &expect, result);
+}
+
+pub fn restoreCursorSCO(buf: []u8) ![]const u8 {
+    if (buf.len < 3) {
+        return BufError.notEnoughLength;
+    }
+
+    var cur: usize = 0;
+
+    buf[cur] = @intFromEnum(Control.ESC);
+    cur += 1;
+    buf[cur] = @intFromEnum(ASCII.LeftSquare);
+    cur += 1;
+    buf[cur] = @intFromEnum(ASCII.u);
+    return buf[0..(cur + 1)];
+}
+
+test "restoreCursorSCO" {
+    var buf: [10]u8 = undefined;
+
+    const result = try restoreCursorSCO(&buf);
+    const expect = [_]u8{ 27, 91, 117 };
+    try std.testing.expectEqualSlices(u8, &expect, result);
+}
