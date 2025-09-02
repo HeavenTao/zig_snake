@@ -260,8 +260,8 @@ pub fn saveCursorDEC(buf: []u8) ![]const u8 {
 
     buf[cur] = @intFromEnum(Control.ESC);
     cur += 1;
-    buf[cur] = @intFromEnum(ASCII.Space);
-    cur += 1;
+    // buf[cur] = @intFromEnum(ASCII.Space);
+    // cur += 1;
     buf[cur] = 55;
     return buf[0..(cur + 1)];
 }
@@ -283,8 +283,8 @@ pub fn restoreCursorDEC(buf: []u8) ![]const u8 {
 
     buf[cur] = @intFromEnum(Control.ESC);
     cur += 1;
-    buf[cur] = @intFromEnum(ASCII.Space);
-    cur += 1;
+    // buf[cur] = @intFromEnum(ASCII.Space);
+    // cur += 1;
     buf[cur] = 56;
     return buf[0..(cur + 1)];
 }
