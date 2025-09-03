@@ -5,7 +5,7 @@ const print = std.debug.print;
 const erase = @import("erase.zig");
 
 pub fn main() !void {
-    // try enableRaw(std.io.getStdOut().handle);
+    try enableRaw(std.io.getStdOut().handle);
 
     const size = getTermSize();
     if (size == null) {
@@ -30,10 +30,10 @@ pub fn main() !void {
     // cur += number.len;
     //
     const writer = std.io.getStdOut().writer();
-    try writer.print("helloWorld", .{});
+    try writer.print("helloWorld1\nhelloworld2", .{});
 
     var buf: [10]u8 = undefined;
-    const leftBuf = try cursor.left(3, &buf);
+    const leftBuf = try cursor.up(1, &buf);
     _ = try writer.write(leftBuf);
 
     const eraseBuf = try erase.erase_from_cursor_until_screen_end(&buf);

@@ -212,7 +212,7 @@ pub fn getPosition(buf: []u8) ![]const u8 {
     cur += 1;
     buf[cur] = @intFromEnum(ASCII.LeftSquare);
     cur += 1;
-    buf[cur] = 54;
+    buf[cur] = @intFromEnum(ASCII.@"6");
     cur += 1;
     buf[cur] = @intFromEnum(ASCII.n);
     return buf[0..(cur + 1)];
@@ -260,7 +260,7 @@ pub fn saveCursorDEC(buf: []u8) ![]const u8 {
 
     buf[cur] = @intFromEnum(Control.ESC);
     cur += 1;
-    buf[cur] = 55;
+    buf[cur] = @intFromEnum(ASCII.@"7");
     return buf[0..(cur + 1)];
 }
 
@@ -281,7 +281,7 @@ pub fn restoreCursorDEC(buf: []u8) ![]const u8 {
 
     buf[cur] = @intFromEnum(Control.ESC);
     cur += 1;
-    buf[cur] = 56;
+    buf[cur] = @intFromEnum(ASCII.@"8");
     return buf[0..(cur + 1)];
 }
 
