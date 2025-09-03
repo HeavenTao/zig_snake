@@ -2,6 +2,7 @@ const std = @import("std");
 const getTermSize = @import("termSize.zig").getTermSize;
 const cursor = @import("move_cursor.zig");
 const print = std.debug.print;
+const erase = @import("erase.zig");
 
 pub fn main() !void {
     // try enableRaw(std.io.getStdOut().handle);
@@ -32,14 +33,12 @@ pub fn main() !void {
     try writer.print("helloWorld", .{});
 
     var buf: [10]u8 = undefined;
+    const leftBuf = try cursor.left(3, &buf);
+    _ = try writer.write(leftBuf);
 
-    const saveBuf = try cursor.saveCursorDEC(&buf);
-    _ = try writer.write(saveBuf);
-    try writer.print("helloWorld", .{});
-    const restoreBuf = try cursor.restoreCursorDEC(&buf);
-    _ = try writer.write(restoreBuf);
+    const eraseBuf = try erase.erase_from_cursor_until_screen_end(&buf);
+    _ = try writer.write(eraseBuf);
 
-    try writer.print("2", .{});
     const reader = std.io.getStdIn().reader();
     var readerBuf: [10]u8 = undefined;
     _ = try reader.read(&readerBuf);

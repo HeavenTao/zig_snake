@@ -1,7 +1,7 @@
 const std = @import("std");
 const Control = @import("control_code.zig").Control;
 const ASCII = @import("ascii_code.zig").ASCII;
-pub const BufError = error{notEnoughLength};
+const BufError = @import("error.zig").BufError;
 
 pub fn home(buf: []u8) ![]const u8 {
     if (buf.len < 3) {
@@ -260,8 +260,6 @@ pub fn saveCursorDEC(buf: []u8) ![]const u8 {
 
     buf[cur] = @intFromEnum(Control.ESC);
     cur += 1;
-    // buf[cur] = @intFromEnum(ASCII.Space);
-    // cur += 1;
     buf[cur] = 55;
     return buf[0..(cur + 1)];
 }
@@ -270,7 +268,7 @@ test "saveCursorDEC" {
     var buf: [10]u8 = undefined;
 
     const result = try saveCursorDEC(&buf);
-    const expect = [_]u8{ 27, 32, 55 };
+    const expect = [_]u8{ 27, 55 };
     try std.testing.expectEqualSlices(u8, &expect, result);
 }
 
@@ -283,8 +281,6 @@ pub fn restoreCursorDEC(buf: []u8) ![]const u8 {
 
     buf[cur] = @intFromEnum(Control.ESC);
     cur += 1;
-    // buf[cur] = @intFromEnum(ASCII.Space);
-    // cur += 1;
     buf[cur] = 56;
     return buf[0..(cur + 1)];
 }
@@ -293,7 +289,7 @@ test "restoreCursorDEC" {
     var buf: [10]u8 = undefined;
 
     const result = try restoreCursorDEC(&buf);
-    const expect = [_]u8{ 27, 32, 56 };
+    const expect = [_]u8{ 27, 56 };
     try std.testing.expectEqualSlices(u8, &expect, result);
 }
 

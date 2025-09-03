@@ -10,6 +10,7 @@ pub const ASCII = enum(u8) {
     F = 70,
     G = 71,
     H = 72,
+    J = 74,
     M = 77,
     ///左括号[
     LeftSquare = 91,
