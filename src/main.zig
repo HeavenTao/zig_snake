@@ -32,12 +32,8 @@ pub fn main() !void {
     const writer = std.io.getStdOut().writer();
     try writer.print("helloWorld1\nhelloworld2", .{});
 
-    var buf: [10]u8 = undefined;
-    const leftBuf = try cursor.up(1, &buf);
-    _ = try writer.write(leftBuf);
-
-    const eraseBuf = try erase.erase_from_cursor_until_screen_end(&buf);
-    _ = try writer.write(eraseBuf);
+    const eraseBuf: [4]u8 = try erase.entireScreen();
+    _ = try writer.write(&eraseBuf);
 
     const reader = std.io.getStdIn().reader();
     var readerBuf: [10]u8 = undefined;

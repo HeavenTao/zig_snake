@@ -43,8 +43,9 @@ test "screenStartToCursor" {
     try std.testing.expectEqualSlices(u8, &expect, result);
 }
 
-pub fn entireScreen(buf: []u8) ![]const u8 {
-    return common(buf, ASCII.@"2", ASCII.J);
+pub fn entireScreen() ![4]u8 {
+    const buf: [4]u8 = [4]u8{ 27, 91, 50, 74 };
+    return buf;
 }
 
 test "entireScreen" {
