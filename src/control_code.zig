@@ -1,13 +1,9 @@
-pub const Control = enum(u8) {
-    BEL = 7,
-    BS = 8,
-    ///H-Tab
-    HT = 9,
-    LF = 10,
-    ///V-Tab
-    VT = 11,
-    FF = 12,
-    CR = 13,
-    ESC = 27,
-    DEL = 127,
-};
+pub const BEL = "\x07";
+pub const BS = "\x08";
+pub const HT = "\x09";
+pub const LF = "\x0A";
+pub const VT = "\x0B";
+pub const FF = "\x0C";
+pub const CR = "\x0D";
+pub const ESC = "\x1b";
+pub const DEL = "\x7F";
