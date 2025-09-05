@@ -3,6 +3,7 @@ const getTermSize = @import("termSize.zig").getTermSize;
 const cursor = @import("move_cursor.zig");
 const print = std.debug.print;
 const erase = @import("erase.zig");
+const style = @import("style.zig").Style;
 
 pub fn main() !void {
     try enableRaw(std.io.getStdOut().handle);

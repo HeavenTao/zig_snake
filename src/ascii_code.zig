@@ -25,6 +25,7 @@ pub const M = "\x4D";
 pub const LeftSquare = "\x5B";
 ///右括号]
 pub const RightSquare = "\x5D";
+pub const m = "\x6D";
 pub const n = "\x6E";
 pub const s = "\x73";
 pub const u = "\x75";
