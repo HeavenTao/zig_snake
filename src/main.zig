@@ -33,8 +33,7 @@ pub fn main() !void {
     const writer = std.io.getStdOut().writer();
     try writer.print("helloWorld1\nhelloworld2", .{});
 
-    var buf: [20]u8 = undefined;
-    const styleBuf = try style.style(&buf, .{ .color = .{ .Id = .{ .Fg = false, .Id = 128 } } });
+    const styleBuf = try style.style(.{ .color = .{ .Id = .{ .Fg = false, .Id = 128 } } });
 
     _ = try writer.write(styleBuf);
     try writer.print("123", .{});
