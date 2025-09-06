@@ -5,6 +5,9 @@ const BufError = @import("error.zig").BufError;
 
 pub const home = Control.ESC ++ ASCII.LeftSquare ++ ASCII.H;
 
+pub const hide = Control.ESC ++ ASCII.LeftSquare ++ "?25l";
+pub const show = Control.ESC ++ ASCII.LeftSquare ++ "?25h";
+
 pub fn to(line: u16, column: u16, buf: []u8) ![]const u8 {
     if (buf.len < 10) {
         return BufError.notEnoughLength;
