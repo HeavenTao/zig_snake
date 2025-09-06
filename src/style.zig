@@ -61,7 +61,7 @@ const ColorNormal = enum(u8) {
     BgBrightWhite = 107,
 };
 
-pub fn style(setting: Setting) ![]const u8 {
+pub fn style(buf: []u8, setting: Setting) ![]const u8 {
     var array = try std.BoundedArray(u8, 100).init(0);
     try array.append(Control.ESC[0]);
     try array.append(ASCII.LeftSquare[0]);
@@ -130,56 +130,65 @@ pub fn style(setting: Setting) ![]const u8 {
 
     _ = array.pop();
     try array.append(ASCII.m[0]);
-    return array.slice();
+    @memcpy(buf[0..array.len], array.slice());
+    return buf[0..array.len];
 }
 test "strikethroughstyle" {
-    const result = try style(.{ .strikethrough = true });
+    var buf: [30]u8 = undefined;
+    const result = try style(&buf, .{ .strikethrough = true });
     const expetc = "\x1b[9m";
 
     try std.testing.expectEqualSlices(u8, expetc, result);
 }
 test "hiddenstyle" {
-    const result = try style(.{ .hidden = true });
+    var buf: [30]u8 = undefined;
+    const result = try style(&buf, .{ .hidden = true });
     const expetc = "\x1b[8m";
 
     try std.testing.expectEqualSlices(u8, expetc, result);
 }
 test "inversestyle" {
-    const result = try style(.{ .inverse = true });
+    var buf: [30]u8 = undefined;
+    const result = try style(&buf, .{ .inverse = true });
     const expetc = "\x1b[7m";
 
     try std.testing.expectEqualSlices(u8, expetc, result);
 }
 
 test "blinkingstyle" {
-    const result = try style(.{ .blinking = true });
+    var buf: [30]u8 = undefined;
+    const result = try style(&buf, .{ .blinking = true });
     const expetc = "\x1b[5m";
 
     try std.testing.expectEqualSlices(u8, expetc, result);
 }
 
 test "underlinestyle" {
-    const result = try style(.{ .underline = true });
+    var buf: [30]u8 = undefined;
+    const result = try style(&buf, .{ .underline = true });
     const expetc = "\x1b[4m";
 
     try std.testing.expectEqualSlices(u8, expetc, result);
 }
 
 test "dimstyle" {
-    const result = try style(.{ .dim = true });
+    var buf: [30]u8 = undefined;
+    const result = try style(&buf, .{ .dim = true });
     const expetc = "\x1b[2m";
 
     try std.testing.expectEqualSlices(u8, expetc, result);
 }
 test "italicstyle" {
-    const result = try style(.{ .italic = true });
+    var buf: [30]u8 = undefined;
+    const result = try style(&buf, .{ .italic = true });
     const expetc = "\x1b[3m";
 
     try std.testing.expectEqualSlices(u8, expetc, result);
 }
 
 test "boldstyle" {
-    const result = try style(.{ .bold = true });
+    var buf: [30]u8 = undefined;
+    const result = try style(&buf, .{ .bold = true });
     const expetc = "\x1b[1m";
 
     try std.testing.expectEqualSlices(u8, expetc, result);
