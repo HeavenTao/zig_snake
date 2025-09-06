@@ -3,7 +3,7 @@ const getTermSize = @import("termSize.zig").getTermSize;
 const cursor = @import("move_cursor.zig");
 const print = std.debug.print;
 const erase = @import("erase.zig");
-const style = @import("style.zig").Style;
+const style = @import("style.zig");
 
 pub fn main() !void {
     try enableRaw(std.io.getStdOut().handle);
@@ -33,8 +33,10 @@ pub fn main() !void {
     const writer = std.io.getStdOut().writer();
     try writer.print("helloWorld1\nhelloworld2", .{});
 
-    _ = try writer.write(cursor.home);
+    var buf: [20]u8 = undefined;
+    const styleBuf = try style.style(&buf, .{ .color = .{ .Id = .{ .Fg = false, .Id = 128 } } });
 
+    _ = try writer.write(styleBuf);
     try writer.print("123", .{});
 
     const reader = std.io.getStdIn().reader();
