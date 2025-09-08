@@ -1,6 +1,7 @@
 const Control = @import("control_code.zig");
 const ASCII = @import("ascii_code.zig");
 const std = @import("std");
+const Allocator = std.mem.Allocator;
 
 pub const Rest = Control.ESC ++ ASCII.LeftSquare ++ ASCII.@"0" ++ ASCII.m;
 
@@ -61,8 +62,9 @@ const ColorNormal = enum(u8) {
     BgBrightWhite = 107,
 };
 
-pub fn style(buf: []u8, setting: Setting) ![]const u8 {
-    var array = try std.BoundedArray(u8, 100).init(0);
+pub fn style(allocator: Allocator, setting: Setting) ![]const u8 {
+    var array = std.ArrayList(u8).init(allocator);
+    // var array = try std.BoundedArray(u8, 100).init(0);
     try array.append(Control.ESC[0]);
     try array.append(ASCII.LeftSquare[0]);
 
@@ -107,89 +109,100 @@ pub fn style(buf: []u8, setting: Setting) ![]const u8 {
     }
 
     if (setting.color) |colorType| {
-        var colorBuf: [20]u8 = undefined;
         const colorResultBuf = try switch (colorType) {
-            .Normal => |value| std.fmt.bufPrint(&colorBuf, "{};", .{@intFromEnum(value)}),
+            .Normal => |value| std.fmt.allocPrint(allocator, "{};", .{@intFromEnum(value)}),
             .Id => |value| blk: {
                 if (value.Fg) {
-                    break :blk std.fmt.bufPrint(&colorBuf, "38;5;{};", .{value.Id});
+                    break :blk std.fmt.allocPrint(allocator, "38;5;{};", .{value.Id});
                 } else {
-                    break :blk std.fmt.bufPrint(&colorBuf, "48;5;{};", .{value.Id});
+                    break :blk std.fmt.allocPrint(allocator, "48;5;{};", .{value.Id});
                 }
             },
             .Rgb => |value| blk: {
                 if (value.Fg) {
-                    break :blk std.fmt.bufPrint(&colorBuf, "38;2;{};{};{};", .{ value.R, value.G, value.B });
+                    break :blk std.fmt.allocPrint(allocator, "38;2;{};{};{};", .{ value.R, value.G, value.B });
                 } else {
-                    break :blk std.fmt.bufPrint(&colorBuf, "48;2;{};{};{};", .{ value.R, value.G, value.B });
+                    break :blk std.fmt.allocPrint(allocator, "48;2;{};{};{};", .{ value.R, value.G, value.B });
                 }
             },
         };
+        defer allocator.free(colorResultBuf);
         try array.appendSlice(colorResultBuf);
     }
 
     _ = array.pop();
     try array.append(ASCII.m[0]);
-    @memcpy(buf[0..array.len], array.slice());
-    return buf[0..array.len];
+    return array.items;
 }
 test "strikethroughstyle" {
-    var buf: [30]u8 = undefined;
-    const result = try style(&buf, .{ .strikethrough = true });
-    const expetc = "\x1b[9m";
+    var allocator = std.testing.allocator;
+    const result = try style(allocator, .{ .strikethrough = true });
+    allocator.free(result);
 
+    const expetc = "\x1b[9m";
     try std.testing.expectEqualSlices(u8, expetc, result);
 }
 test "hiddenstyle" {
-    var buf: [30]u8 = undefined;
-    const result = try style(&buf, .{ .hidden = true });
+    var allocator = std.testing.allocator;
+    const result = try style(allocator, .{ .hidden = true });
+    defer allocator.free(result);
+
     const expetc = "\x1b[8m";
 
     try std.testing.expectEqualSlices(u8, expetc, result);
 }
 test "inversestyle" {
-    var buf: [30]u8 = undefined;
-    const result = try style(&buf, .{ .inverse = true });
+    var allocator = std.testing.allocator;
+    const result = try style(allocator, .{ .inverse = true });
+    defer allocator.free(result);
+
     const expetc = "\x1b[7m";
 
     try std.testing.expectEqualSlices(u8, expetc, result);
 }
 
 test "blinkingstyle" {
-    var buf: [30]u8 = undefined;
-    const result = try style(&buf, .{ .blinking = true });
+    var allocator = std.testing.allocator;
+    const result = try style(allocator, .{ .blinking = true });
+    defer allocator.free(result);
+
     const expetc = "\x1b[5m";
 
     try std.testing.expectEqualSlices(u8, expetc, result);
 }
 
 test "underlinestyle" {
-    var buf: [30]u8 = undefined;
-    const result = try style(&buf, .{ .underline = true });
-    const expetc = "\x1b[4m";
+    var allocator = std.testing.allocator;
+    const result = try style(allocator, .{ .underline = true });
+    defer allocator.free(result);
 
+    const expetc = "\x1b[4m";
     try std.testing.expectEqualSlices(u8, expetc, result);
 }
 
 test "dimstyle" {
-    var buf: [30]u8 = undefined;
-    const result = try style(&buf, .{ .dim = true });
+    var allocator = std.testing.allocator;
+    const result = try style(allocator, .{ .dim = true });
+    defer allocator.free(allocator);
+
     const expetc = "\x1b[2m";
 
     try std.testing.expectEqualSlices(u8, expetc, result);
 }
 test "italicstyle" {
-    var buf: [30]u8 = undefined;
-    const result = try style(&buf, .{ .italic = true });
-    const expetc = "\x1b[3m";
+    var allocator = std.testing.allocator;
+    const result = try style(allocator, .{ .italic = true });
+    defer allocator.free(result);
 
+    const expetc = "\x1b[3m";
     try std.testing.expectEqualSlices(u8, expetc, result);
 }
 
 test "boldstyle" {
-    var buf: [30]u8 = undefined;
-    const result = try style(&buf, .{ .bold = true });
-    const expetc = "\x1b[1m";
+    var allocator = std.testing.allocator;
+    const result = try style(allocator, .{ .bold = true });
+    defer allocator.free(result);
 
+    const expetc = "\x1b[1m";
     try std.testing.expectEqualSlices(u8, expetc, result);
 }

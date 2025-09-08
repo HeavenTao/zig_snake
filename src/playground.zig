@@ -4,31 +4,27 @@ const erase = @import("erase.zig");
 const drawer = @import("drawer.zig");
 const getTermSize = @import("termSize.zig").getTermSize;
 const Size = @import("termSize.zig").Size;
+const Allocator = std.mem.Allocator;
+
 pub const Playground = struct {
     stdOut: std.fs.File = std.io.getStdOut(),
     writer: std.fs.File.Writer,
     size: Size = .{ .h = 0, .w = 0 },
+    allocator: Allocator,
 
-    pub fn init() Playground {
-        return .{ .stdOut = std.io.getStdOut(), .writer = std.io.getStdOut().writer() };
+    pub fn init(allocator: Allocator) Playground {
+        return .{ .stdOut = std.io.getStdOut(), .writer = std.io.getStdOut().writer(), .allocator = allocator };
     }
 
     pub fn start(self: *Playground) !void {
         try self.enableRaw();
         try self.hideCursor();
         try self.initSize();
-        var arrayBuf = try std.BoundedArray(u8, 1024).init(0);
+
+        _ = try self.writer.write(try drawer.drawPoint(self.allocator, 5, 5, null));
 
         const reader = std.io.getStdIn().reader();
         var readerBuf: [10]u8 = undefined;
-        var writerBuf: [30]u8 = undefined;
-
-        var result = try drawer.drawPoint(&writerBuf, self.size.h, 20, '*');
-        try arrayBuf.appendSlice(result);
-        result = try drawer.drawPoint(&writerBuf, 5, 20, '#');
-        try arrayBuf.appendSlice(result);
-
-        _ = try self.writer.write(arrayBuf.slice());
 
         _ = try reader.read(&readerBuf);
     }
@@ -38,10 +34,11 @@ pub const Playground = struct {
         if (size) |val| {
             self.size = val;
         } else {
+            _ = try self.writer.print("can not get TerSize", .{});
             @panic("can not get TermSize");
         }
-        var temp: [10]u8 = undefined;
-        const nextLineBuf = try cursor.beginOfNextLines(&temp, self.size.h);
+        const nextLineBuf = try cursor.beginOfNextLines(self.allocator, self.size.h);
+
         _ = try self.writer.write(nextLineBuf);
     }
 
@@ -59,3 +56,13 @@ pub const Playground = struct {
         try std.posix.tcsetattr(self.stdOut.handle, std.posix.TCSA.FLUSH, old_termios);
     }
 };
+
+test "playgorund start" {
+    var arean = std.heap.ArenaAllocator.init(std.testing.allocator);
+    defer arean.deinit();
+
+    const allocator = arean.allocator();
+    var playground = Playground.init(allocator);
+
+    try playground.start();
+}
