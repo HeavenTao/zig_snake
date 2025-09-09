@@ -22,7 +22,8 @@ pub const Playground = struct {
         try self.initSize();
 
         // _ = try self.writer.write(try drawer.drawPoint(self.allocator, 5, 5, null));
-        _ = try self.writer.write(try drawer.drawVLine(self.allocator, 10, 5, 20, '#'));
+        // _ = try self.writer.write(try drawer.drawVLine(self.allocator, 10, 5, 20, '#'));
+        _ = try self.writer.write(try drawer.drawHLine(self.allocator, 10, 5, 20, null));
 
         const reader = std.io.getStdIn().reader();
         var readerBuf: [10]u8 = undefined;

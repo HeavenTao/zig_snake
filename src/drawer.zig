@@ -37,3 +37,23 @@ pub fn drawVLine(allocator: Allocator, x: u16, y1: u16, y2: u16, char: ?u8) ![]c
 
     return bufArray.items;
 }
+
+pub fn drawHLine(allocator: Allocator, y: u16, x1: u16, x2: u16, char: ?u8) ![]const u8 {
+    const leftX = if (x1 < x2) x1 else x2;
+    const rightX = if (x1 < x2) x2 else x1;
+
+    var useChar: u8 = '*';
+    if (char) |val| {
+        useChar = val;
+    }
+
+    var burArray = std.ArrayList(u8).init(allocator);
+
+    try burArray.appendSlice(try cursor.to(allocator, y, leftX));
+
+    for (leftX..rightX) |_| {
+        try burArray.append(useChar);
+    }
+
+    return burArray.items;
+}
