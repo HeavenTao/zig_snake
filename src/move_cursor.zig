@@ -167,3 +167,5 @@ test "restoreCursorSCO" {
     const expect = [_]u8{ 27, 91, 117 };
     try std.testing.expectEqualSlices(u8, &expect, restoreCursorSCO);
 }
+
+pub const backSpace = Control.BS;

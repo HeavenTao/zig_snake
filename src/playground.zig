@@ -21,7 +21,8 @@ pub const Playground = struct {
         try self.hideCursor();
         try self.initSize();
 
-        _ = try self.writer.write(try drawer.drawPoint(self.allocator, 5, 5, null));
+        // _ = try self.writer.write(try drawer.drawPoint(self.allocator, 5, 5, null));
+        _ = try self.writer.write(try drawer.drawVLine(self.allocator, 10, 5, 20, '#'));
 
         const reader = std.io.getStdIn().reader();
         var readerBuf: [10]u8 = undefined;
