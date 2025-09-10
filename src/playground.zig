@@ -5,6 +5,7 @@ const drawer = @import("drawer.zig");
 const getTermSize = @import("termSize.zig").getTermSize;
 const Size = @import("termSize.zig").Size;
 const Allocator = std.mem.Allocator;
+const builtin = @import("builtin");
 
 pub const Playground = struct {
     stdOut: std.fs.File = std.io.getStdOut(),
@@ -23,12 +24,18 @@ pub const Playground = struct {
 
         // _ = try self.writer.write(try drawer.drawPoint(self.allocator, 5, 5, null));
         // _ = try self.writer.write(try drawer.drawVLine(self.allocator, 10, 5, 20, '#'));
-        _ = try self.writer.write(try drawer.drawHLine(self.allocator, 10, 5, 20, null));
+        // _ = try self.writer.write(try drawer.drawHLine(self.allocator, 10, 5, 20, null));
 
         const reader = std.io.getStdIn().reader();
         var readerBuf: [10]u8 = undefined;
+        var size: usize = 0;
 
-        _ = try reader.read(&readerBuf);
+        if (!builtin.is_test) {
+            while (!std.mem.eql(u8, "q", readerBuf[0..size])) {
+                size = try reader.read(&readerBuf);
+                _ = try self.writer.write(erase.entireScreen);
+            }
+        }
     }
 
     pub fn initSize(self: *Playground) !void {

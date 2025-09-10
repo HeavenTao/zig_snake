@@ -9,8 +9,8 @@ pub const home = Control.ESC ++ ASCII.LeftSquare ++ ASCII.H;
 pub const hide = Control.ESC ++ ASCII.LeftSquare ++ "?25l";
 pub const show = Control.ESC ++ ASCII.LeftSquare ++ "?25h";
 
-pub fn to(allocator: Allocator, line: u16, column: u16) ![]const u8 {
-    return std.fmt.allocPrint(allocator, Control.ESC ++ ASCII.LeftSquare ++ "{};{}" ++ ASCII.H, .{ line, column });
+pub fn to(allocator: Allocator, x: u16, y: u16) ![]const u8 {
+    return std.fmt.allocPrint(allocator, Control.ESC ++ ASCII.LeftSquare ++ "{};{}" ++ ASCII.H, .{ y, x });
 }
 
 test "to" {
@@ -33,20 +33,20 @@ test "to2" {
     try std.testing.expectEqualSlices(u8, expect[0..], result);
 }
 
-pub fn up(allocator: Allocator, lines: u16) ![]const u8 {
-    return std.fmt.allocPrint(allocator, Control.ESC ++ ASCII.LeftSquare ++ "{}" ++ ASCII.A, .{lines});
+pub fn up(allocator: Allocator, y: u16) ![]const u8 {
+    return std.fmt.allocPrint(allocator, Control.ESC ++ ASCII.LeftSquare ++ "{}" ++ ASCII.A, .{y});
 }
 
-pub fn down(allocator: Allocator, lines: u16) ![]const u8 {
-    return std.fmt.allocPrint(allocator, Control.ESC ++ ASCII.LeftSquare ++ "{}" ++ ASCII.B, .{lines});
+pub fn down(allocator: Allocator, y: u16) ![]const u8 {
+    return std.fmt.allocPrint(allocator, Control.ESC ++ ASCII.LeftSquare ++ "{}" ++ ASCII.B, .{y});
 }
 
-pub fn left(allocator: Allocator, columns: u16) ![]const u8 {
-    return std.fmt.allocPrint(allocator, Control.ESC ++ ASCII.LeftSquare ++ "{}" ++ ASCII.D, .{columns});
+pub fn left(allocator: Allocator, x: u16) ![]const u8 {
+    return std.fmt.allocPrint(allocator, Control.ESC ++ ASCII.LeftSquare ++ "{}" ++ ASCII.D, .{x});
 }
 
-pub fn right(allocator: Allocator, columns: u16) ![]const u8 {
-    return std.fmt.allocPrint(allocator, Control.ESC ++ ASCII.LeftSquare ++ "{}" ++ ASCII.C, .{columns});
+pub fn right(allocator: Allocator, x: u16) ![]const u8 {
+    return std.fmt.allocPrint(allocator, Control.ESC ++ ASCII.LeftSquare ++ "{}" ++ ASCII.C, .{x});
 }
 
 test "up" {
@@ -85,8 +85,8 @@ test "right" {
     try std.testing.expectEqualSlices(u8, &expect, result);
 }
 
-pub fn beginOfNextLines(allocator: Allocator, lines: u16) ![]const u8 {
-    return std.fmt.allocPrint(allocator, Control.ESC ++ ASCII.LeftSquare ++ "{}" ++ ASCII.E, .{lines});
+pub fn beginOfNextLines(allocator: Allocator, y: u16) ![]const u8 {
+    return std.fmt.allocPrint(allocator, Control.ESC ++ ASCII.LeftSquare ++ "{}" ++ ASCII.E, .{y});
 }
 
 test "beginOfNextLines" {
@@ -98,8 +98,8 @@ test "beginOfNextLines" {
     try std.testing.expectEqualSlices(u8, &expect, result);
 }
 
-pub fn beginOfPreviousLines(allocator: Allocator, lines: u16) ![]const u8 {
-    return std.fmt.allocPrint(allocator, Control.ESC ++ ASCII.LeftSquare ++ "{}" ++ ASCII.F, .{lines});
+pub fn beginOfPreviousLines(allocator: Allocator, y: u16) ![]const u8 {
+    return std.fmt.allocPrint(allocator, Control.ESC ++ ASCII.LeftSquare ++ "{}" ++ ASCII.F, .{y});
 }
 
 test "beginOfPreviousLines" {
@@ -111,8 +111,8 @@ test "beginOfPreviousLines" {
     try std.testing.expectEqualSlices(u8, &expect, result);
 }
 
-pub fn toColumns(allocator: Allocator, columns: u16) ![]const u8 {
-    return std.fmt.allocPrint(allocator, Control.ESC ++ ASCII.LeftSquare ++ "{}" ++ ASCII.G, .{columns});
+pub fn toColumns(allocator: Allocator, x: u16) ![]const u8 {
+    return std.fmt.allocPrint(allocator, Control.ESC ++ ASCII.LeftSquare ++ "{}" ++ ASCII.G, .{x});
 }
 
 test "toColumns" {
