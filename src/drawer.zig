@@ -16,6 +16,20 @@ pub fn drawPoint(allocator: Allocator, x: u16, y: u16, char: ?u8) ![]const u8 {
     return bufArray.items;
 }
 
+test "drawPoint" {
+    const Control = @import("control_code.zig");
+    const ASCII = @import("ascii_code.zig");
+    const allocator = std.testing.allocator;
+    const result = try drawPoint(allocator, 11, 11, null);
+
+    const expect = [_]u8{
+        Control.ESC[0],
+        ASCII.LeftSquare[0],
+    };
+
+    try std.testing.expectEqualSlices(u8, &expect, result);
+}
+
 pub fn drawVLine(allocator: Allocator, x: u16, y1: u16, y2: u16, char: ?u8) ![]const u8 {
     const topY = if (y1 < y2) y1 else y2;
     const bottomY = if (y1 < y2) y2 else y1;
