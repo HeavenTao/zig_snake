@@ -12,6 +12,6 @@ pub fn main() !void {
 
     const allocator = allocatorType.allocator();
 
-    var playground = Playground.init(allocator);
+    var playground = try Playground.init(allocator);
     try playground.start();
 }

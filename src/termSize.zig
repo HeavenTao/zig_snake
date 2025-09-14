@@ -6,7 +6,7 @@ pub const Size = struct {
 };
 
 pub fn getTermSize() ?Size {
-    const file = std.io.getStdOut();
+    const file = std.fs.File.stdout();
     var buf: std.posix.winsize = undefined;
     const result = std.posix.system.ioctl(file.handle, std.posix.T.IOCGWINSZ, @intFromPtr(&buf));
     if (result == 0) {

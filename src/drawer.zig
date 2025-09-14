@@ -3,17 +3,17 @@ const cursor = @import("move_cursor.zig");
 const Allocator = std.mem.Allocator;
 
 pub fn drawPoint(allocator: Allocator, x: u16, y: u16, char: ?u8) ![]const u8 {
-    var bufArray = std.ArrayList(u8).init(allocator);
+    var bufArray = try std.ArrayList(u8).initCapacity(allocator, 15);
 
-    try bufArray.appendSlice(try cursor.to(allocator, x, y));
+    try bufArray.appendSlice(allocator, try cursor.to(allocator, x, y));
 
     if (char) |value| {
-        try bufArray.append(value);
+        try bufArray.append(allocator, value);
     } else {
-        try bufArray.append('*');
+        try bufArray.append(allocator, '*');
     }
 
-    return bufArray.items;
+    return bufArray.toOwnedSlice(allocator);
 }
 
 test "drawPoint" {
@@ -39,14 +39,14 @@ pub fn drawVLine(allocator: Allocator, x: u16, y1: u16, y2: u16, char: ?u8) ![]c
         useChar = val;
     }
 
-    var bufArray = std.ArrayList(u8).init(allocator);
+    var bufArray = try std.ArrayList(u8).initCapacity(allocator, @as(usize, bottomY - topY));
 
-    try bufArray.appendSlice(try cursor.to(allocator, topY, x));
+    try bufArray.appendSlice(allocator, try cursor.to(allocator, topY, x));
 
     for (topY..bottomY) |_| {
-        try bufArray.append(useChar);
-        try bufArray.appendSlice(try cursor.down(allocator, 1));
-        try bufArray.appendSlice(cursor.backSpace);
+        try bufArray.append(allocator, useChar);
+        try bufArray.appendSlice(allocator, try cursor.down(allocator, 1));
+        try bufArray.appendSlice(allocator, cursor.backSpace);
     }
 
     return bufArray.items;
@@ -61,12 +61,12 @@ pub fn drawHLine(allocator: Allocator, y: u16, x1: u16, x2: u16, char: ?u8) ![]c
         useChar = val;
     }
 
-    var burArray = std.ArrayList(u8).init(allocator);
+    var burArray = try std.ArrayList(u8).initCapacity(allocator, @as(usize, rightX - leftX));
 
-    try burArray.appendSlice(try cursor.to(allocator, y, leftX));
+    try burArray.appendSlice(allocator, try cursor.to(allocator, y, leftX));
 
     for (leftX..rightX) |_| {
-        try burArray.append(useChar);
+        try burArray.append(allocator, useChar);
     }
 
     return burArray.items;
