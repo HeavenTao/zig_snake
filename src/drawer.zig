@@ -41,12 +41,15 @@ pub fn drawVLine(allocator: Allocator, x: u16, y1: u16, y2: u16, char: ?u8) ![]c
 
     var bufArray = try std.ArrayList(u8).initCapacity(allocator, @as(usize, bottomY - topY));
 
-    try bufArray.appendSlice(allocator, try cursor.to(allocator, topY, x));
+    try bufArray.appendSlice(allocator, try cursor.to(allocator, x, topY));
 
-    for (topY..bottomY) |_| {
+    try bufArray.appendSlice(allocator, cursor.saveCursorDEC);
+
+    for (topY..bottomY + 1) |_| {
         try bufArray.append(allocator, useChar);
+        try bufArray.appendSlice(allocator, cursor.restoreCursorDEC);
         try bufArray.appendSlice(allocator, try cursor.down(allocator, 1));
-        try bufArray.appendSlice(allocator, cursor.backSpace);
+        try bufArray.appendSlice(allocator, cursor.saveCursorDEC);
     }
 
     return bufArray.items;
@@ -63,11 +66,58 @@ pub fn drawHLine(allocator: Allocator, y: u16, x1: u16, x2: u16, char: ?u8) ![]c
 
     var burArray = try std.ArrayList(u8).initCapacity(allocator, @as(usize, rightX - leftX));
 
-    try burArray.appendSlice(allocator, try cursor.to(allocator, y, leftX));
+    try burArray.appendSlice(allocator, try cursor.to(allocator, leftX, y));
 
-    for (leftX..rightX) |_| {
+    for (leftX..rightX + 1) |_| {
         try burArray.append(allocator, useChar);
     }
 
     return burArray.items;
+}
+
+pub fn drawRect(allocator: Allocator, x1: u16, y1: u16, x2: u16, y2: u16) ![]const u8 {
+    var leftX: u16 = 0;
+    var rightX: u16 = 0;
+    var topY: u16 = 0;
+    var bottomY: u16 = 0;
+
+    if (std.math.compare(x1, .gte, x2)) {
+        leftX = x2;
+        rightX = x1;
+    } else {
+        leftX = x1;
+        rightX = x2;
+    }
+
+    if (std.math.compare(y1, .gte, y2)) {
+        topY = y2;
+        bottomY = y1;
+    } else {
+        topY = y1;
+        bottomY = y2;
+    }
+
+    var array = std.array_list.AlignedManaged(u8, null).init(allocator);
+
+    {
+        const lineBuf = try drawHLine(allocator, topY, leftX, rightX, null);
+        defer allocator.free(lineBuf);
+        try array.appendSlice(lineBuf);
+    }
+    {
+        const lineBuf = try drawVLine(allocator, rightX, topY, bottomY, null);
+        defer allocator.free(lineBuf);
+        try array.appendSlice(lineBuf);
+    }
+    {
+        const lineBuf = try drawVLine(allocator, leftX, topY, bottomY, null);
+        defer allocator.free(lineBuf);
+        try array.appendSlice(lineBuf);
+    }
+    {
+        const lineBuf = try drawHLine(allocator, bottomY, leftX, rightX, null);
+        defer allocator.free(lineBuf);
+        try array.appendSlice(lineBuf);
+    }
+    return array.items;
 }

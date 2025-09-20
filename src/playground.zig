@@ -25,26 +25,38 @@ pub const Playground = struct {
         var stdout_writer = std.fs.File.stdout().writer(&buf);
         var stdout = &stdout_writer.interface;
 
+        // var readBuf: [20]u8 = undefined;
+        // var stdin_reader = std.fs.File.stdin().reader(&readBuf);
+        // var stdin = &stdin_reader.interface;
+
         // _ = try stdout.write(try drawer.drawPoint(self.allocator, 5, 5, null));
-        // _ = try stdout.write(try drawer.drawVLine(self.allocator, 10, 5, 20, '#'));
-        _ = try stdout.write(try drawer.drawHLine(self.allocator, 10, 5, 20, null));
-        try stdout.flush();
+        // _ = try stdout.write(try drawer.drawVLine(self.allocator, 20, 1, 41, '#'));
+        while (true) {
+            _ = try stdout.write(try drawer.drawRect(self.allocator, 10, 15, 20, 30));
+
+            _ = try stdout.write(cursor.home);
+
+            try stdout.flush();
+
+            // _ = try stdin.takeByte();
+        }
     }
 
     pub fn initSize(self: *Playground) !void {
         const size = getTermSize();
         if (size) |val| {
             self.size = val;
+            // std.debug.print("w:{},h:{}", .{ self.size.w, self.size.h });
         } else {
             @panic("can not get TermSize");
         }
-        const nextLineBuf = try cursor.beginOfNextLines(self.allocator, self.size.h);
-
-        var buf: [100]u8 = undefined;
-        var stdout_writer = std.fs.File.stdout().writer(&buf);
-        var stdout = &stdout_writer.interface;
-        _ = try stdout.write(nextLineBuf);
-        try stdout.flush();
+        // const nextLineBuf = try cursor.beginOfNextLines(self.allocator, self.size.h);
+        //
+        // var buf: [100]u8 = undefined;
+        // var stdout_writer = std.fs.File.stdout().writer(&buf);
+        // var stdout = &stdout_writer.interface;
+        // _ = try stdout.write(nextLineBuf);
+        // try stdout.flush();
     }
 
     fn hideCursor() !void {

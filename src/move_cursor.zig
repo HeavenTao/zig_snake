@@ -9,6 +9,7 @@ pub const home = Control.ESC ++ ASCII.LeftSquare ++ ASCII.H;
 pub const hide = Control.ESC ++ ASCII.LeftSquare ++ "?25l";
 pub const show = Control.ESC ++ ASCII.LeftSquare ++ "?25h";
 
+/// x,y 1 based
 pub fn to(allocator: Allocator, x: u16, y: u16) ![]const u8 {
     return std.fmt.allocPrint(allocator, Control.ESC ++ ASCII.LeftSquare ++ "{};{}" ++ ASCII.H, .{ y, x });
 }
