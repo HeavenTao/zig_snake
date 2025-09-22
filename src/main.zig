@@ -7,11 +7,6 @@ const style = @import("style.zig");
 const Playground = @import("playground.zig").Playground;
 
 pub fn main() !void {
-    var allocatorType = std.heap.ArenaAllocator.init(std.heap.page_allocator);
-    defer allocatorType.deinit();
-
-    const allocator = allocatorType.allocator();
-
-    var playground = try Playground.init(allocator);
+    var playground = try Playground.init();
     try playground.start();
 }

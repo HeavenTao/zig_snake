@@ -9,10 +9,9 @@ const builtin = @import("builtin");
 
 pub const Playground = struct {
     size: Size = .{ .h = 0, .w = 0 },
-    allocator: Allocator,
 
-    pub fn init(allocator: Allocator) !Playground {
-        return .{ .allocator = allocator };
+    pub fn init() !Playground {
+        return .{};
     }
 
     pub fn start(self: *Playground) !void {
@@ -20,51 +19,45 @@ pub const Playground = struct {
         try hideCursor();
         try self.initSize();
 
-        var buf: [1024]u8 = undefined;
+        try self.startDrawThread();
+    }
 
+    fn startDrawThread(self: *Playground) !void {
+        var buf: [1024]u8 = undefined;
         var stdout_writer = std.fs.File.stdout().writer(&buf);
         var stdout = &stdout_writer.interface;
 
-        // var readBuf: [20]u8 = undefined;
-        // var stdin_reader = std.fs.File.stdin().reader(&readBuf);
-        // var stdin = &stdin_reader.interface;
+        const base_allocator = std.heap.page_allocator;
+        var gpa = std.heap.ArenaAllocator.init(base_allocator);
 
-        // _ = try stdout.write(try drawer.drawPoint(self.allocator, 5, 5, null));
-        // _ = try stdout.write(try drawer.drawVLine(self.allocator, 20, 1, 41, '#'));
+        var row: u16 = 1;
         while (true) {
-            _ = try stdout.write(try drawer.drawRect(self.allocator, 10, 15, 20, 30));
+            const allocator = gpa.allocator();
+            defer _ = gpa.reset(.retain_capacity);
 
+            _ = try stdout.write(erase.entireScreen);
+            _ = try stdout.write(try drawer.drawRect(allocator, row, 1, self.size.w, self.size.h));
             _ = try stdout.write(cursor.home);
-
             try stdout.flush();
 
-            // _ = try stdin.takeByte();
+            std.Thread.sleep(std.time.ns_per_s);
+            row += 1;
         }
     }
 
-    pub fn initSize(self: *Playground) !void {
+    fn startInputThread() !void {}
+
+    fn initSize(self: *Playground) !void {
         const size = getTermSize();
         if (size) |val| {
             self.size = val;
-            // std.debug.print("w:{},h:{}", .{ self.size.w, self.size.h });
         } else {
             @panic("can not get TermSize");
         }
-        // const nextLineBuf = try cursor.beginOfNextLines(self.allocator, self.size.h);
-        //
-        // var buf: [100]u8 = undefined;
-        // var stdout_writer = std.fs.File.stdout().writer(&buf);
-        // var stdout = &stdout_writer.interface;
-        // _ = try stdout.write(nextLineBuf);
-        // try stdout.flush();
     }
 
     fn hideCursor() !void {
-        var buf: [10]u8 = undefined;
-        var stdout_writer = std.fs.File.stdout().writer(&buf);
-        var stdout = &stdout_writer.interface;
-        _ = try stdout.write(cursor.hide);
-        try stdout.flush();
+        try std.fs.File.stdout().writeAll(cursor.hide);
     }
 
     fn enableRaw() !void {
@@ -77,13 +70,3 @@ pub const Playground = struct {
         try std.posix.tcsetattr(std.fs.File.stdout().handle, std.posix.TCSA.FLUSH, old_termios);
     }
 };
-
-test "playgorund start" {
-    var arean = std.heap.ArenaAllocator.init(std.testing.allocator);
-    defer arean.deinit();
-
-    const allocator = arean.allocator();
-    var playground = try Playground.init(allocator);
-
-    try playground.start();
-}
