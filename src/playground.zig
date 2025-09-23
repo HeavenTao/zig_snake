@@ -45,7 +45,9 @@ const Snake = struct {
     pub fn eat(self: *Snake, egg: *Egg) !void {
         const eggPosition = egg.position;
 
-        try self.body.append(self.allocator, .{ .x = eggPosition.x, .y = eggPosition.y });
+        for (0..30) |_| {
+            try self.body.append(self.allocator, .{ .x = eggPosition.x, .y = eggPosition.y });
+        }
     }
 
     fn bodyMove(self: *Snake) void {
@@ -146,7 +148,7 @@ pub const Playground = struct {
 
             try stdout.flush();
 
-            std.Thread.sleep(std.time.ns_per_ms * 10);
+            std.Thread.sleep(std.time.ns_per_ms * 50);
         }
     }
 
