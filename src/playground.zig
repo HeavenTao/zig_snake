@@ -22,8 +22,8 @@ const Egg = struct {
         const r: u64 = @intCast(std.time.nanoTimestamp());
         var prng = std.Random.DefaultPrng.init(r);
         var random = prng.random();
-        const eggX = random.uintLessThan(u16, w);
-        const eggY = random.uintLessThan(u16, h);
+        const eggX = random.intRangeLessThan(u16, 2, w - 1);
+        const eggY = random.intRangeLessThan(u16, 2, h - 1);
         self.position = .{ .x = eggX, .y = eggY };
     }
 };
@@ -146,7 +146,7 @@ pub const Playground = struct {
 
             try stdout.flush();
 
-            std.Thread.sleep(std.time.ns_per_ms * 100);
+            std.Thread.sleep(std.time.ns_per_ms * 10);
         }
     }
 
