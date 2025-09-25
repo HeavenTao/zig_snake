@@ -13,12 +13,24 @@ const Point = struct { x: u16, y: u16 };
 
 const Egg = struct {
     position: Point,
+    old_position: Point,
 
     fn init() Egg {
-        return .{ .position = .{ .x = 0, .y = 0 } };
+        return .{ .position = .{ .x = 0, .y = 0 }, .old_position = .{ .x = 0, .y = 0 } };
+    }
+
+    fn isDiff(self: *Egg) bool {
+        if (self.position.x != self.old_position.x) {
+            return true;
+        }
+        if (self.position.y != self.old_position.y) {
+            return true;
+        }
+        return false;
     }
 
     fn resetPosition(self: *Egg, w: u16, h: u16) void {
+        self.old_position = self.position;
         const r: u64 = @intCast(std.time.nanoTimestamp());
         var prng = std.Random.DefaultPrng.init(r);
         var random = prng.random();
@@ -32,6 +44,8 @@ const Snake = struct {
     allocator: Allocator,
     body: std.ArrayList(Point),
     dir: u8 = 'd',
+    tail: Point,
+    head: Point,
 
     fn init(allocator: Allocator) !Snake {
         var body = try std.ArrayList(Point).initCapacity(allocator, 10);
@@ -39,15 +53,16 @@ const Snake = struct {
         try body.append(allocator, .{ .x = 9, .y = 3 });
         try body.append(allocator, .{ .x = 8, .y = 3 });
 
-        return .{ .allocator = allocator, .body = body };
+        return .{ .allocator = allocator, .body = body, .tail = .{ .x = 0, .y = 0 }, .head = .{ .x = 0, .y = 0 } };
     }
 
-    pub fn eat(self: *Snake, egg: *Egg) !void {
+    fn eat(self: *Snake, egg: *Egg) !void {
         const eggPosition = egg.position;
 
-        for (0..30) |_| {
-            try self.body.append(self.allocator, .{ .x = eggPosition.x, .y = eggPosition.y });
-        }
+        try self.body.append(self.allocator, .{ .x = eggPosition.x, .y = eggPosition.y });
+        // for (0..30) |_| {
+        //     try self.body.append(self.allocator, .{ .x = eggPosition.x, .y = eggPosition.y });
+        // }
     }
 
     fn bodyMove(self: *Snake) void {
@@ -61,38 +76,51 @@ const Snake = struct {
         }
     }
 
-    pub fn moveLeft(self: *Snake) void {
+    fn moveLeft(self: *Snake) void {
+        self.tail = self.body.items[self.body.items.len - 1];
         self.dir = 'a';
         self.bodyMove();
         const head = &self.body.items[0];
         head.x -= 1;
+        self.head = self.body.items[0];
     }
-    pub fn moveRight(self: *Snake) void {
+    fn moveRight(self: *Snake) void {
+        self.tail = self.body.items[self.body.items.len - 1];
         self.dir = 'd';
         self.bodyMove();
         const head = &self.body.items[0];
         head.x += 1;
+        self.head = self.body.items[0];
     }
 
-    pub fn moveUp(self: *Snake) void {
+    fn moveUp(self: *Snake) void {
+        self.tail = self.body.items[self.body.items.len - 1];
         self.dir = 'w';
         self.bodyMove();
         const head = &self.body.items[0];
         head.y -= 1;
+        self.head = self.body.items[0];
     }
 
-    pub fn moveDown(self: *Snake) void {
+    fn moveDown(self: *Snake) void {
+        self.tail = self.body.items[self.body.items.len - 1];
         self.dir = 's';
         self.bodyMove();
         const head = &self.body.items[0];
         head.y += 1;
+        self.head = self.body.items[0];
     }
 };
 
 pub const Playground = struct {
     allocator: Allocator,
     size: Size = .{ .h = 0, .w = 0 },
-    wall: Rect = .{ .x = 1, .y = 1, .w = 0, .h = 0 },
+    wall: Rect = .{
+        .x = 1,
+        .y = 1,
+        .w = 0,
+        .h = 0,
+    },
     snake: Snake,
     egg: Egg,
 
@@ -105,7 +133,8 @@ pub const Playground = struct {
         try hideCursor();
         try self.initSize();
 
-        _ = try std.Thread.spawn(.{}, startDrawThread, .{self});
+        // _ = try std.Thread.spawn(.{}, startDrawThread, .{self});
+        try self.startDrawThread();
 
         try self.startInputThread();
     }
@@ -121,35 +150,33 @@ pub const Playground = struct {
 
         const allocator = gpa.allocator();
 
-        while (true) {
-            defer _ = gpa.reset(.retain_capacity);
+        // _ = try stdout.write(erase.entireScreen);
 
-            _ = try stdout.write(erase.entireScreen);
-
-            //draw walls
-            {
-                _ = try stdout.write(try drawer.drawRect(allocator, self.wall.x, self.wall.y, self.wall.w, self.wall.h));
-            }
-
-            //draw snakes
-            {
-                for (0..self.snake.body.items.len) |idx| {
-                    const p = &self.snake.body.items[idx];
-                    _ = try stdout.write(try drawer.drawPoint(allocator, p.x, p.y, 64));
-                }
-            }
-
-            //draw egg
-            {
-                _ = try stdout.write(try drawer.drawPoint(allocator, self.egg.position.x, self.egg.position.y, null));
-            }
-
-            _ = try stdout.write(cursor.home);
-
-            try stdout.flush();
-
-            std.Thread.sleep(std.time.ns_per_ms * 50);
+        //draw walls
+        {
+            _ = try stdout.write(try drawer.drawRect(allocator, self.wall.x, self.wall.y, self.wall.w, self.wall.h));
         }
+
+        //draw snakes
+        {
+            for (0..self.snake.body.items.len) |idx| {
+                const p = &self.snake.body.items[idx];
+                _ = try stdout.write(try drawer.drawPoint(allocator, p.x, p.y, 64));
+            }
+        }
+
+        //draw egg
+        {
+            _ = try stdout.write(try drawer.drawPoint(allocator, self.egg.position.x, self.egg.position.y, null));
+        }
+
+        _ = try stdout.write(cursor.home);
+
+        try stdout.flush();
+    }
+
+    fn diffDraw(self: *Playground) !void {
+        if (self.egg.isDiff()) {}
     }
 
     fn startInputThread(self: *Playground) !void {
@@ -181,6 +208,8 @@ pub const Playground = struct {
                 self.egg.resetPosition(self.size.w, self.size.h);
                 try self.snake.eat(&self.egg);
             }
+
+            try self.diffDraw();
         } else |err| {
             std.debug.print("err,{}", .{err});
         }
